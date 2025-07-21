@@ -26,7 +26,6 @@ public class JWTUtils {
     public static String generateToken(Map<String,String> map) {
         Calendar instance = Calendar.getInstance();
         instance.add(Calendar.DATE,7);
-
         // 创建jwt builder
         JWTCreator.Builder builder = JWT.create();
         map.forEach(builder::withClaim);
