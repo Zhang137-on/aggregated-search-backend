@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zhang.project.common.ErrorCode;
 import com.zhang.project.exception.BusinessException;
+import com.zhang.project.jwt.JWTUtils;
 import com.zhang.project.mapper.UserMapper;
 import com.zhang.project.model.entity.User;
 import com.zhang.project.service.UserService;
@@ -14,6 +15,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.zhang.project.constant.UserConstant.ADMIN_ROLE;
 import static com.zhang.project.constant.UserConstant.USER_LOGIN_STATE;
@@ -35,7 +39,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 盐值，混淆密码
      */
-    private static final String SALT = "yupi";
+    private static final String SALT = "zhang";
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -103,6 +107,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
         return user;
     }
+
+
+    /**
+     * 通过 JWT 来登录
+     * @param userAccount 账号
+     * @param userPassword 密码
+     * @param request 请求信息
+     * @return token信息
+     */
+    @Override
+    public String userLoginToken(String userAccount, String userPassword, HttpServletRequest request) {
+        // 1. 校验
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+        }
+        if (userAccount.length() < 4) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号错误");
+        }
+        if (userPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        }
+        // 2. 加密
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        // 查询用户是否存在
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        queryWrapper.eq("userPassword", encryptPassword);
+        User user = userMapper.selectOne(queryWrapper);
+        // 用户不存在
+        if (user == null) {
+            log.info("user login failed, userAccount cannot match userPassword");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
+        }
+        // 3. 返回Token
+        Map<String, String> map = new HashMap<>();
+        map.put("username", userAccount);
+        map.put("password", userPassword);
+        return JWTUtils.generateToken(map);
+    }
+
+
 
     /**
      * 获取当前登录用户

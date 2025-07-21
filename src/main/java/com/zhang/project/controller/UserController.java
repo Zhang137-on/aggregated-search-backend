@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * 用户接口
  *
- * @author yupi
+ * @author zhang
  */
 @RestController
 @RequestMapping("/user")
@@ -76,6 +76,29 @@ public class UserController {
         User user = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(user);
     }
+
+    /**
+     * 用户登录
+     *
+     * @param userLoginRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/getToken")
+    public BaseResponse<String> getToken(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+        if (userLoginRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String userAccount = userLoginRequest.getUserAccount();
+        String userPassword = userLoginRequest.getUserPassword();
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String token = userService.userLoginToken(userAccount, userPassword, request);
+        return ResultUtils.success(token);
+    }
+
+
 
     /**
      * 用户注销

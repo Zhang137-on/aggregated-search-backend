@@ -1,7 +1,11 @@
 package com.zhang.project.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,6 +17,10 @@ import java.util.Date;
  */
 @TableName(value = "user")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Accessors(chain = true) //链式调用
 public class User implements Serializable {
     /**
      * id
