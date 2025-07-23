@@ -26,7 +26,7 @@ public class JwtFilter implements Filter {
     /**
      * 白名单
      */
-    private final List<String> excludePath = Arrays.asList("/api/user/getToken", "/api/user/register");
+    private static final List<String> EXCLUDE_PATH = Arrays.asList("/api/user/getToken", "/api/user/register");
 
     /**
      * 拦截路径
