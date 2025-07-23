@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * 用户服务
  *
- * @author yupi
+ * @author zhang
  */
 public interface UserService extends IService<User> {
 
@@ -25,7 +25,6 @@ public interface UserService extends IService<User> {
 
     /**
      * 用户登录
-     *
      * @param userAccount  用户账户
      * @param userPassword 用户密码
      * @param request
@@ -35,7 +34,6 @@ public interface UserService extends IService<User> {
 
     /**
      * 用户登录，返回token
-     *
      * @param userAccount  用户账户
      * @param userPassword 用户密码
      * @param request

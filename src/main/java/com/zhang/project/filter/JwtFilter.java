@@ -3,14 +3,15 @@ package com.zhang.project.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.zhang.project.jwt.JWTUtils;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebServlet;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,15 +21,23 @@ import java.util.List;
  * @date 2025年7月21日16:51:13
  */
 @Component
-@WebServlet(urlPatterns = "/*")
 public class JwtFilter implements Filter {
     /**
      * 白名单
      */
     private final List<String> excludePath = Arrays.asList("/api/user/getToken", "/api/user/register");
 
+    /**
+     * 拦截路径
+     */
+    private static final String[] PROTECTED_PATHS = {
+            "/api/user/*",
+            "/api/post/**"
+    };
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        System.out.println("这个类被初始化了");
         Filter.super.init(filterConfig);
     }
 
@@ -38,6 +47,13 @@ public class JwtFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String path = request.getRequestURI();
         System.out.println("这里是拦截器拦截的请求路径" + path);
+        // 检查路径是否需要拦截
+        if (!JwtFilter.shouldIntercept(request)) {
+            // 不需要拦截，直接放行
+            System.out.println("没有拦截" + path);
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
         // 1. 如果是排除路径，则直接放行
         if(excludePath.contains(path)){
             filterChain.doFilter(servletRequest, servletResponse);
@@ -47,6 +63,7 @@ public class JwtFilter implements Filter {
         try {
             DecodedJWT verify = JWTUtils.verify(token);
             request.setAttribute("username", verify.getClaim("username").asString());
+            filterChain.doFilter(request, servletResponse);
         } catch (Exception e) {
             // 3. 验证失败，返回 401
             HttpServletResponse response = (HttpServletResponse) servletResponse;
@@ -57,5 +74,44 @@ public class JwtFilter implements Filter {
     @Override
     public void destroy() {
         Filter.super.destroy();
+    }
+
+    /**
+     * 检查请求路径是否需要拦截
+     */
+    public static boolean shouldIntercept(HttpServletRequest request) {
+        String requestPath = request.getRequestURI();
+        for (String pattern : PROTECTED_PATHS) {
+            if (matchPath(pattern, requestPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 通配符路径匹配（支持 /* 和 /**）
+     */
+    private static boolean matchPath(String pattern, String path) {
+        // 处理 /** 匹配多级路径
+        if (pattern.endsWith("/**")) {
+            String basePattern = pattern.substring(0, pattern.length() - 3);
+            System.out.println("1:path:" + path);
+            System.out.println("1:basePattern:" + basePattern);
+            return path.startsWith(basePattern);
+        }
+        // 处理 /* 匹配单级路径
+        else if (pattern.endsWith("/*")) {
+            String basePattern = pattern.substring(0, pattern.length() - 2);
+            System.out.println("2:path:" + path);
+            System.out.println("2:basePattern:" + basePattern);
+            return path.startsWith(basePattern) &&
+                    path.split("/").length - basePattern.split("/").length == 1;
+        }
+        // 精确匹配
+        else {
+            System.out.println("3:path:" + path);
+            return pattern.equals(path);
+        }
     }
 }
