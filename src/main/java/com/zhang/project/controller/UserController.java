@@ -59,33 +59,36 @@ public class UserController {
     /**
      * 用户登录
      *
-     * @param userLoginRequest
-     * @param request
-     * @return
+     * @param userLoginRequest 登陆信息
+     * @return User
      */
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
-        if (userLoginRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        String userAccount = userLoginRequest.getUserAccount();
-        String userPassword = userLoginRequest.getUserPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = userService.userLogin(userAccount, userPassword, request);
+        JudgingLoginInfo(userLoginRequest);
+        User user = userService.userLogin(userLoginRequest.getUserAccount(), userLoginRequest.getUserPassword(),
+                request);
         return ResultUtils.success(user);
     }
 
     /**
      * 用户登录
      *
-     * @param userLoginRequest
-     * @param request
-     * @return
+     * @param userLoginRequest 登录信息
+     * @return token
      */
     @PostMapping("/getToken")
     public BaseResponse<String> getToken(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+        JudgingLoginInfo(userLoginRequest);
+        String token = userService.userLoginToken(userLoginRequest.getUserAccount(), userLoginRequest.getUserPassword(),
+                request);
+        return ResultUtils.success(token);
+    }
+
+    /**
+     * 对用户的登录信息进行验空
+     * @param userLoginRequest 登录信息
+     */
+    public void JudgingLoginInfo(UserLoginRequest userLoginRequest) {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -94,11 +97,7 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String token = userService.userLoginToken(userAccount, userPassword, request);
-        return ResultUtils.success(token);
     }
-
-
 
     /**
      * 用户注销
