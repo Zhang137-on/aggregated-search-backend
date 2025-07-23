@@ -56,7 +56,7 @@ public class JwtFilter implements Filter {
             return;
         }
         // 1. 如果是排除路径，则直接放行
-        if(excludePath.contains(path)){
+        if(EXCLUDE_PATH.contains(path)){
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
