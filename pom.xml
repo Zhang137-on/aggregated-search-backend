@@ -106,12 +106,33 @@
             <version>${jwt.version}</version>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-webflux</artifactId>-->
+<!--        </dependency>-->
+
 <!--        &lt;!&ndash; ES 搜索引擎 &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>org.elasticsearch.client</groupId>-->
 <!--            <artifactId>elasticsearch-rest-high-level-client</artifactId>-->
 <!--            <version>8.18.3</version>-->
 <!--        </dependency>-->
+        <!--日志框架接口-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <!--日志框架接口实现-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <!--日志框架核心组件-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+        </dependency>
+
 
     </dependencies>
 

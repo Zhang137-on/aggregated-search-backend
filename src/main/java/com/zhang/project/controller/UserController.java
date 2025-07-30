@@ -12,13 +12,20 @@ import com.zhang.project.model.dto.user.*;
 import com.zhang.project.model.entity.User;
 import com.zhang.project.model.vo.UserVO;
 import com.zhang.project.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -26,12 +33,35 @@ import java.util.stream.Collectors;
  *
  * @author zhang
  */
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
     @Resource
     private UserService userService;
+
+//    private final ExecutorService executor = Executors.newCachedThreadPool();
+    /**
+     * 获取线程池
+     */
+    private final ExecutorService executor = new ThreadPoolExecutor(
+            // 核心线程数 (corePoolSize)
+            10,
+            // 最大线程数 (maximumPoolSize)
+            100,
+            // 空闲线程存活时间（秒）
+            60L,
+            // 时间单位
+            TimeUnit.SECONDS,
+            // 任务队列（有界队列）
+            new LinkedBlockingQueue<>(1000),
+            // 线程工厂
+            Executors.defaultThreadFactory(),
+            // 拒绝策略
+            new ThreadPoolExecutor.AbortPolicy()
+    );
+
 
     // region 登录相关
 
@@ -257,5 +287,75 @@ public class UserController {
         return ResultUtils.success(userVOPage);
     }
 
-    // endregion
+    /**
+     * 流式返回接口
+     */
+
+   @GetMapping("/stream-data")
+    public SseEmitter streamData() {
+        SseEmitter emitter = new SseEmitter();
+
+        // 模拟流式数据（实际可能是数据库查询、MQ 消费等）
+        executor.execute(() -> {
+            try {
+                for (int i = 1; i <= 10; i++) {
+                    emitter.send("Data chunk " + i); // 发送数据块
+                    Thread.sleep(1000); // 模拟延迟
+                }
+                emitter.complete(); // 完成流
+            } catch (Exception e) {
+                emitter.completeWithError(e); // 错误处理
+            }
+        });
+       log.info("进来了!");
+       log.warn("进来了!");
+       log.error("进来了!");
+
+        return emitter;
+    }
+
+    @GetMapping("/stream-data2")
+    public ResponseBodyEmitter streamData2() {
+        ResponseBodyEmitter emitter = new ResponseBodyEmitter();
+
+        executor.execute(() -> {
+            try {
+                for (int i = 1; i <= 10; i++) {
+                    // 发送数据块（可以是 JSON、文本等）
+                    emitter.send("Data chunk " + i + "\n");
+                    Thread.sleep(1000); // 模拟延迟
+                }
+                emitter.complete(); // 完成流
+            } catch (Exception e) {
+                emitter.completeWithError(e); // 错误处理
+            }
+        });
+
+        return emitter;
+    }
+
+//    /**
+//     * 流式返回
+//     */
+//    @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE, value = "/chat")
+//    public Flux<String> streamChat(@RequestBody ChatRequest request) {
+//        // 调用大模型 API 并返回 Flux 流
+//        return callLargeModelApi(request.message())
+//                .doOnNext(chunk -> log.info("发送响应片段: {}", chunk))
+//                .doOnError(error -> log.error("流式处理出错", error));
+//    }
+//
+//    // 模拟调用大模型 API，返回 Flux 流
+//    private Flux<String> callLargeModelApi(String prompt) {
+//        // 实际项目中需替换为真实的大模型调用逻辑
+//        return Flux.just(
+//                        "您好！",
+//                        "我是您的AI助手。",
+//                        "您的问题是：" + prompt,
+//                        "我将为您提供详细解答..."
+//                )// 模拟实时响应延迟
+//                .delayElements(Duration.ofMillis(300));
+//    }
+
+
 }

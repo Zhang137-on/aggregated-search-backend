@@ -32,8 +32,8 @@ public class JwtFilter implements Filter {
      * 拦截路径
      */
     private static final String[] PROTECTED_PATHS = {
-            "/api/user/*",
-            "/api/post/**"
+//            "/api/user/*",
+//            "/api/post/**"
     };
 
     @Override
