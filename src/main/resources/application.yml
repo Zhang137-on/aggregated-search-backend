@@ -41,8 +41,8 @@ mybatis-plus:
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
 logging:
   level:
-    org.springframework.boot: DEBUG
-    org.springframework.web: DEBUG
+    org.springframework.boot: INFO
+    org.springframework.web: INFO
     root: info  # 全局日志级别
     com.improve.fuqige.bronze: info  # 指定包路径的日志级别
   file:
