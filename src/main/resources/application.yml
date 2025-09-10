@@ -19,6 +19,11 @@ spring:
   session:
     timeout: 86400
     store-type: redis
+  security:
+    user:
+      name: admin
+      password: 123456
+      roles: ADMIN
 
 
   # redis 配置

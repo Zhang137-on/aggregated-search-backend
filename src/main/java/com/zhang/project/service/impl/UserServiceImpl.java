@@ -1,5 +1,6 @@
 package com.zhang.project.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zhang.project.common.ErrorCode;
@@ -10,6 +11,10 @@ import com.zhang.project.model.entity.User;
 import com.zhang.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -17,6 +22,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.zhang.project.constant.UserConstant.ADMIN_ROLE;
@@ -31,7 +37,7 @@ import static com.zhang.project.constant.UserConstant.USER_LOGIN_STATE;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-        implements UserService {
+        implements UserService, UserDetailsService {
 
     @Resource
     private UserMapper userMapper;
@@ -40,6 +46,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 盐值，混淆密码
      */
     private static final String SALT = "zhang";
+
+    /**
+     * 加密器
+     */
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
+
+
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -65,8 +80,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             if (count > 0) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
             }
-            // 2. 加密
-            String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+            // 2. 加密（改用BCrypt）
+            String encryptPassword = passwordEncoder.encode(userPassword);
             // 3. 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
@@ -201,6 +216,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return true;
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 1. 从数据库查询用户
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getUserName, username);
+        User user = userMapper.selectOne(userLambdaQueryWrapper);
+        if (user == null) {
+            throw new UsernameNotFoundException("用户不存在：" + username);
+        }
+        // 2. 将数据库中的用户转换为Spring Security需要的UserDetails对象
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUserName())
+                .password(user.getUserPassword())
+                .roles(user.getUserRole())
+                .build();
+    }
 }
 
 
