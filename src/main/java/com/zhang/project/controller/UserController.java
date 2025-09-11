@@ -100,19 +100,6 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
-    /**
-     * 用户登录
-     *
-     * @param userLoginRequest 登录信息
-     * @return token
-     */
-    @PostMapping("/getToken")
-    public BaseResponse<String> getToken(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
-        JudgingLoginInfo(userLoginRequest);
-        String token = userService.userLoginToken(userLoginRequest.getUserAccount(), userLoginRequest.getUserPassword(),
-                request);
-        return ResultUtils.success(token);
-    }
 
     /**
      * 对用户的登录信息进行验空

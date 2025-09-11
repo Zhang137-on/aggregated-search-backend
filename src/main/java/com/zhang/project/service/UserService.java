@@ -33,15 +33,6 @@ public interface UserService extends IService<User> {
     User userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
     /**
-     * 用户登录，返回token
-     * @param userAccount  用户账户
-     * @param userPassword 用户密码
-     * @param request
-     * @return token
-     */
-    String userLoginToken(String userAccount, String userPassword, HttpServletRequest request);
-
-    /**
      * 获取当前登录用户
      *
      * @param request
