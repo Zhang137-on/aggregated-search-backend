@@ -3,6 +3,8 @@ package com.zhang.project.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhang.project.mapper.UserMapper;
 import com.zhang.project.model.entity.User;
+import com.zhang.project.service.AuthUserService;
+import com.zhang.project.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,7 +16,7 @@ import javax.annotation.Resource;
  * @author zhangyuhao
  */
 @Service
-public class AuthUserServiceImpl implements UserDetailsService {
+public class AuthUserServiceImpl implements UserDetailsService, AuthUserService {
     @Resource
     public UserMapper userMapper;
 
